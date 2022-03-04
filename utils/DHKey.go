@@ -7,7 +7,7 @@ import (
 )
 
 type Endpoint struct {
-	PublicBase   big.Int //upto int64 - the public base known to both people
+	PublicBase   big.Int //- the public base known to both people
 	PublicModulo big.Int // - the public modulus known to both people
 	PrivateKey   big.Int // - the private key known only to each person
 }
@@ -45,14 +45,14 @@ func Encrypt(end Endpoint, partialKey big.Int, message string) string {
 	var encrypted string
 	//encode each character to an integer, add the resultant int value of the secret to further encrypt it
 	//uses the shared modulo, plus the partial key + your private key
+	//there isnt a great reversible way to modify utf-8 chars without overflow using this so just keep them as numbers
 	fullKey := GenFull(end, partialKey)
 	for _, char := range message {
 		character := big.NewInt(int64(char))
 		character.Add(character, &fullKey)
 		encrypted += character.String() + ","
 	}
-	return encrypted
-
+	return strings.TrimSuffix(encrypted, ",") //remove trailing comma
 }
 
 func Decrypt(end Endpoint, partialKey big.Int, encrypted string) string {
