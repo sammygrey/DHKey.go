@@ -1,9 +1,21 @@
-package DHKey
+package utils
+
+import (
+	"crypto/rand"
+)
 
 type Endpoint struct {
-	publicBase   int //int64 - the public base known to both people
+	publicBase   int //upto int64 - the public base known to both people
 	publicModulo int // - the public modulus known to both people
 	privateKey   int // - the private key known only to each person
+}
+
+func newBaseModulo() []int {
+	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
+	p, _ := rand.Prime(rand.Reader, 64)
+	g, _ := rand.Prime(rand.Reader, 64)
+	base, modulo := p.Int64(), g.Int64()
+	return []int{int(base), int(modulo)}
 }
 
 func newEndpoint(publicBase, publicModulo, privateKey int) Endpoint {
