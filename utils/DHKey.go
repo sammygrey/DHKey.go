@@ -2,71 +2,69 @@ package utils
 
 import (
 	"crypto/rand"
+	"math/big"
+	"strings"
 )
 
 type Endpoint struct {
-	PublicBase   int //upto int64 - the public base known to both people
-	PublicModulo int // - the public modulus known to both people
-	PrivateKey   int // - the private key known only to each person
+	PublicBase   big.Int //upto int64 - the public base known to both people
+	PublicModulo big.Int // - the public modulus known to both people
+	PrivateKey   big.Int // - the private key known only to each person
 }
 
-func NewBaseModulo() []int {
+func NewBaseModulo() []big.Int {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
 	p, _ := rand.Prime(rand.Reader, 64)
 	g, _ := rand.Prime(rand.Reader, 64)
-	base, modulo := uint32(p.Int64()), uint32(g.Int64()) //we don't want any negative numbers here, converting to uint and back solves this
-	return []int{int(base), int(modulo)}
+	base, modulo := p.Abs(p), g.Abs(g)
+	return []big.Int{*base, *modulo}
 }
 
-func NewEndpoint(publicBase, publicModulo, privateKey int) Endpoint {
+func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 	//creates a endpoint struct using an oop style function
 	return Endpoint{publicBase, publicModulo, privateKey}
 }
 
-func GenPartial(end Endpoint) int {
+func GenPartial(end Endpoint) big.Int {
 	//generate public key using private key and public parts to hand over to other party
 	//this is safe to directly hand over
-	partial := exp(end.PublicBase, end.PrivateKey)
-	return partial % end.PublicModulo
+	partial := new(big.Int)
+	partial.Exp(&end.PublicBase, &end.PrivateKey, &end.PublicModulo)
+	return *partial
 }
 
-func GenFull(end Endpoint, partialKey int) int {
+func GenFull(end Endpoint, partialKey big.Int) big.Int {
 	//generate full shared secret using the other parties' public key and our personal endpoint
 	//this should not be shared directly
-	return exp(partialKey, end.PrivateKey) % end.PublicModulo
+	full := big.NewInt(0)
+	full.Exp(&partialKey, &end.PrivateKey, &end.PublicModulo)
+	return *full
 }
 
-func Encrypt(end Endpoint, partialKey int, message string) string {
-	var encrypted []rune //int32
-	//encode each character to an integer, add the resultant int value of the secret to encode it
-	for i, char := range message {
-		encrypted[i] = rune(int(char) + GenFull(end, partialKey))
+func Encrypt(end Endpoint, partialKey big.Int, message string) string {
+	var encrypted string
+	//encode each character to an integer, add the resultant int value of the secret to further encrypt it
+	//uses the shared modulo, plus the partial key + your private key
+	fullKey := GenFull(end, partialKey)
+	for _, char := range message {
+		character := big.NewInt(int64(char))
+		character.Add(character, &fullKey)
+		encrypted += character.String() + ","
 	}
-	return string(encrypted)
+	return encrypted
 
 }
 
-func Decrypt(end Endpoint, partialKey int, encrypted string) string {
+func Decrypt(end Endpoint, partialKey big.Int, encrypted string) string {
 	var message []rune
-	//perform the opposite of what we did to encrypt, to decrypt it
-	for i, char := range encrypted {
-		message[i] = rune(int(char) - GenFull(end, partialKey))
+	strSlice := strings.Split(encrypted, ",")
+	fullKey := GenFull(end, partialKey)
+	//undo the encryption process using the shared modulo, plus the partial key + your private key
+	for _, strInt := range strSlice {
+		num := new(big.Int)
+		num.SetString(strInt, 10)
+		num.Sub(num, &fullKey)
+		message = append(message, rune(num.Int64()))
 	}
 	return string(message)
-}
-
-func exp(x, y int) int {
-	// fast binary operation for calculating power of integers, only works to int64 max
-	// this also isn't set up for negative integers for root style expressions
-	power := 1
-	for y > 0 {
-		// if y bit is 1, you could also do y%2 != 0 here
-		if y&1 != 0 {
-			power *= x
-		}
-		//eventually this will make y == 0
-		y >>= 1 //binary right shift -> y = y/2 once, you could also just do y /= 2
-		x *= x
-	}
-	return power
 }
