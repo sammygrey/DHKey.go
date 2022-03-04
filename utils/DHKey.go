@@ -14,7 +14,7 @@ func NewBaseModulo() []int {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
 	p, _ := rand.Prime(rand.Reader, 64)
 	g, _ := rand.Prime(rand.Reader, 64)
-	base, modulo := p.Int64(), g.Int64()
+	base, modulo := uint32(p.Int64()), uint32(g.Int64()) //we don't want any negative numbers here, converting to uint and back solves this
 	return []int{int(base), int(modulo)}
 }
 
