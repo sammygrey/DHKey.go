@@ -5,12 +5,12 @@ import (
 )
 
 type Endpoint struct {
-	publicBase   int //upto int64 - the public base known to both people
-	publicModulo int // - the public modulus known to both people
-	privateKey   int // - the private key known only to each person
+	PublicBase   int //upto int64 - the public base known to both people
+	PublicModulo int // - the public modulus known to both people
+	PrivateKey   int // - the private key known only to each person
 }
 
-func newBaseModulo() []int {
+func NewBaseModulo() []int {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
 	p, _ := rand.Prime(rand.Reader, 64)
 	g, _ := rand.Prime(rand.Reader, 64)
@@ -18,44 +18,44 @@ func newBaseModulo() []int {
 	return []int{int(base), int(modulo)}
 }
 
-func newEndpoint(publicBase, publicModulo, privateKey int) Endpoint {
+func NewEndpoint(publicBase, publicModulo, privateKey int) Endpoint {
 	//creates a endpoint struct using an oop style function
 	return Endpoint{publicBase, publicModulo, privateKey}
 }
 
-func genPartial(end Endpoint) int {
+func GenPartial(end Endpoint) int {
 	//generate public key using private key and public parts to hand over to other party
 	//this is safe to directly hand over
-	partial := Exp(end.publicBase, end.privateKey)
-	return partial % end.publicModulo
+	partial := exp(end.PublicBase, end.PrivateKey)
+	return partial % end.PublicModulo
 }
 
-func genFull(end Endpoint, partialKey int) int {
+func GenFull(end Endpoint, partialKey int) int {
 	//generate full shared secret using the other parties' public key and our personal endpoint
 	//this should not be shared directly
-	return Exp(partialKey, end.privateKey) % end.publicModulo
+	return exp(partialKey, end.PrivateKey) % end.PublicModulo
 }
 
-func encrypt(end Endpoint, partialKey int, message string) string {
+func Encrypt(end Endpoint, partialKey int, message string) string {
 	var encrypted []rune //int32
 	//encode each character to an integer, add the resultant int value of the secret to encode it
 	for i, char := range message {
-		encrypted[i] = rune(int(char) + genFull(end, partialKey))
+		encrypted[i] = rune(int(char) + GenFull(end, partialKey))
 	}
 	return string(encrypted)
 
 }
 
-func decrypt(end Endpoint, partialKey int, encrypted string) string {
+func Decrypt(end Endpoint, partialKey int, encrypted string) string {
 	var message []rune
 	//perform the opposite of what we did to encrypt, to decrypt it
 	for i, char := range encrypted {
-		message[i] = rune(int(char) - genFull(end, partialKey))
+		message[i] = rune(int(char) - GenFull(end, partialKey))
 	}
 	return string(message)
 }
 
-func Exp(x, y int) int {
+func exp(x, y int) int {
 	// fast binary operation for calculating power of integers, only works to int64 max
 	// this also isn't set up for negative integers for root style expressions
 	power := 1
