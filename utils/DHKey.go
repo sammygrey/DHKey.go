@@ -6,12 +6,14 @@ import (
 	"strings"
 )
 
+// Endpoint is ...
 type Endpoint struct {
 	PublicBase   big.Int //- the public base known to both people
 	PublicModulo big.Int // - the public modulus known to both people
 	PrivateKey   big.Int // - the private key known only to each person
 }
 
+// NewBaseModulo is ...
 func NewBaseModulo() []big.Int {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
 	p, _ := rand.Prime(rand.Reader, 64)
@@ -20,11 +22,13 @@ func NewBaseModulo() []big.Int {
 	return []big.Int{*base, *modulo}
 }
 
+// NewEndpoint is ...
 func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 	//creates a endpoint struct using an oop style function
 	return Endpoint{publicBase, publicModulo, privateKey}
 }
 
+// GenPartial is ...
 func GenPartial(end Endpoint) big.Int {
 	//generate public key using private key and public parts to hand over to other party
 	//this is safe to directly hand over
@@ -33,6 +37,7 @@ func GenPartial(end Endpoint) big.Int {
 	return *partial
 }
 
+// GenFull is ...
 func GenFull(end Endpoint, partialKey big.Int) big.Int {
 	//generate full shared secret using the other parties' public key and our personal endpoint
 	//this should not be shared directly
@@ -41,6 +46,7 @@ func GenFull(end Endpoint, partialKey big.Int) big.Int {
 	return *full
 }
 
+// Encrypt is ...
 func Encrypt(end Endpoint, partialKey big.Int, message string) string {
 	var encrypted string
 	//encode each character to an integer, add the resultant int value of the secret to further encrypt it
@@ -55,6 +61,7 @@ func Encrypt(end Endpoint, partialKey big.Int, message string) string {
 	return strings.TrimSuffix(encrypted, ",") //remove trailing comma
 }
 
+// Decrypt is ...
 func Decrypt(end Endpoint, partialKey big.Int, encrypted string) string {
 	var message []rune
 	strSlice := strings.Split(encrypted, ",")

@@ -1,5 +1,7 @@
 # DHKey.go
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/sammygrey/DHKey.go)](https://goreportcard.com/report/github.com/sammygrey/DHKey.go)
+
 🔑🔁🔑 Go microservice that provides Diffie Hellman Key Exhange services
 
 ## Usage
