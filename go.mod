@@ -1,3 +1,3 @@
-module github.com/sammygrey/DHKey.go
+module github.com/sammygrey/dh-key.go
 
 go 1.17
