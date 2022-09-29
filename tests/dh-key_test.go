@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/sammygrey/DHKey.go/u"
+	"github.com/sammygrey/dh-key.go/utils"
 )
 
 var test_end utils.Endpoint = utils.NewEndpoint(*big.NewInt(5), *big.NewInt(23), *big.NewInt(15))

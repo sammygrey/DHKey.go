@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"encoding/base64"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"math/big"
-	"strings"
+	"errors"
 )
 
 // Endpoint is ...
@@ -15,7 +18,7 @@ type Endpoint struct {
 
 // NewBaseModulo is ...
 func NewBaseModulo() []big.Int {
-	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers should work
+	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers will work
 	p, _ := rand.Prime(rand.Reader, 64)
 	g, _ := rand.Prime(rand.Reader, 64)
 	base, modulo := p.Abs(p), g.Abs(g)
@@ -47,31 +50,42 @@ func GenFull(end Endpoint, partialKey big.Int) big.Int {
 }
 
 // Encrypt is ...
-func Encrypt(end Endpoint, partialKey big.Int, message string) string {
-	var encrypted string
-	//encode each character to an integer, add the resultant int value of the secret to further encrypt it
-	//uses the shared modulo, plus the partial key + your private key
-	//there isnt a great reversible way to modify utf-8 chars without overflow using this so just keep them as numbers
+func Encrypt(end Endpoint, partialKey big.Int, message string) ([]byte, error) {
+	plainText := []byte(message)
 	fullKey := GenFull(end, partialKey)
-	for _, char := range message {
-		character := big.NewInt(int64(char))
-		character.Add(character, &fullKey)
-		encrypted += character.String() + ","
-	}
-	return strings.TrimSuffix(encrypted, ",") //remove trailing comma
+	block, err := aes.NewCipher((&fullKey).Bytes())
+	if err != nil {
+        return nil, err
+    }
+	b := base64.StdEncoding.EncodeToString(plainText)
+    cipherText := make([]byte, aes.BlockSize+len(b))
+    initialVector := cipherText[:aes.BlockSize]
+    //if _, err := io.ReadFull(rand.Reader, initialVector); err != nil {
+        //return nil, err
+    //}
+    cipherFeedback := cipher.NewCFBEncrypter(block, initialVector)
+    cipherFeedback.XORKeyStream(cipherText[aes.BlockSize:], []byte(b))
+	return cipherText, nil
 }
 
 // Decrypt is ...
-func Decrypt(end Endpoint, partialKey big.Int, encrypted string) string {
-	var message []rune
-	strSlice := strings.Split(encrypted, ",")
+func Decrypt(end Endpoint, partialKey big.Int,encrypted string) ([]byte, error) {
 	fullKey := GenFull(end, partialKey)
-	//undo the encryption process using the shared modulo, plus the partial key + your private key
-	for _, strInt := range strSlice {
-		num := new(big.Int)
-		num.SetString(strInt, 10)
-		num.Sub(num, &fullKey)
-		message = append(message, rune(num.Int64()))
-	}
-	return string(message)
+	block, err := aes.NewCipher((&fullKey).Bytes())
+	cipherText := []byte(encrypted)
+	if err != nil {
+        return nil, err
+    }
+    if len(cipherText) < aes.BlockSize {
+        return nil, errors.New("ciphertext too short")
+    }
+    initialVector := cipherText[:aes.BlockSize]
+    plainText := cipherText[aes.BlockSize:]
+    cipherFeedback := cipher.NewCFBDecrypter(block, initialVector)
+    cipherFeedback.XORKeyStream(plainText, plainText)
+    data, err := base64.StdEncoding.DecodeString(string(plainText))
+    if err != nil {
+        return nil, err
+    }
+	return data, nil
 }
