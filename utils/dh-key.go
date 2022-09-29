@@ -35,7 +35,7 @@ func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 }
 
 func NewPrivateKey(bytes uint8) (big.int, error) {
-	if (bytes = 16 || bytes = 24 || bytes = 32){
+	if (bytes == 16 || bytes == 24 || bytes == 32){
 		privateKey := new(big.Int)
 		pkBytes := make([]byte, bytes)
 		_, err := rand.Read(fullKey)
