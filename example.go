@@ -35,6 +35,6 @@ func main() {
 	encrypted := string(cipherText)
 	fmt.Println(encrypted)
 	decrypted, _ := utils.Decrypt(end2, pbk1, encrypted)
-	fmt.Println(decrypted)
+	fmt.Println(string(decrypted))
 
 }
