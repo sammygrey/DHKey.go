@@ -7,11 +7,20 @@ import (
 	"github.com/sammygrey/dh-key.go/utils"
 )
 
+func err(err error){
+	if err != nil{
+		fmt.Println(err)
+	}
+}
+
 func main() {
 
-	base, modulo := utils.NewBaseModulo(32)
-	pk1 := utils.NewPrivateKey(32)
-	pk2 := utils.NewPrivateKey(32)
+	bm, err1 := utils.NewBaseModulo(32)
+	err(err1)
+	pk1, err2 := utils.NewPrivateKey(32)
+	err(err2)
+	pk2, err3 := utils.NewPrivateKey(32)
+	err(err3)
 	end1 := utils.NewEndpoint(*base, *modulo, *pk1)
 	end2 := utils.NewEndpoint(*base, *modulo, *pk2)
 	var pbk1 big.Int = utils.GenPartial(end1)
