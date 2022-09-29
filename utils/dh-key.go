@@ -18,14 +18,17 @@ type Endpoint struct {
 }
 
 // NewBaseModulo is ...
-func NewBaseModulo(bytes uint8) []big.Int {
+func NewBaseModulo(bytes uint8) ([]big.Int, error)[] {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers will work
+	bits := int(bytes)*8
 	if (bytes == 16 || bytes == 24 || bytes == 32){
-		p, _ := rand.Prime(rand.Reader, bytes)
-		g, _ := rand.Prime(rand.Reader, bytes)
+		p, _ := rand.Prime(rand.Reader, bits)
+		g, _ := rand.Prime(rand.Reader, bits)
 		base, modulo := p.Abs(p), g.Abs(g)
-		return []big.Int{*base, *modulo}
+		return []big.Int{*base, *modulo}, nil
 	}
+	return nil, errors.New("base and modulo may only be 16/24/32 bytes")
+
 }
 
 // NewEndpoint is ...
@@ -34,13 +37,13 @@ func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 	return Endpoint{publicBase, publicModulo, privateKey}
 }
 
-func NewPrivateKey(bytes uint8) (big.int, error) {
+func NewPrivateKey(bytes uint8) (big.Int, error) {
 	if (bytes == 16 || bytes == 24 || bytes == 32){
 		privateKey := new(big.Int)
 		pkBytes := make([]byte, bytes)
-		_, err := rand.Read(fullKey)
+		_, err := rand.Read(privateKey)
 		if err != nil{
-			return nil, error
+			return nil, err
 		}
 		privateKey.SetBytes(pkBytes)
 		return privateKey, nil
