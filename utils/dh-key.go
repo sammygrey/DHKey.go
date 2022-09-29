@@ -38,17 +38,14 @@ func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 }
 
 func NewPrivateKey(bytes uint8) (big.Int, error) {
+	privateKey := new(big.Int)
 	if (bytes == 16 || bytes == 24 || bytes == 32){
-		privateKey := new(big.Int)
 		pkBytes := make([]byte, bytes)
-		_, err := rand.Read(privateKey)
-		if err != nil{
-			return nil, err
-		}
+		_, err := rand.Read(pkBytes)
 		privateKey.SetBytes(pkBytes)
-		return privateKey, nil
+		return *privateKey, err
 	}
-	return nil, errors.New("key may only be 16/24/32 bytes")
+	return privateKey, errors.New("key may only be 16/24/32 bytes")
 }
 
 // GenPartial is ...
