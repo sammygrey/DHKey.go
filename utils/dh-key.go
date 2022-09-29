@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"math/big"
 	"errors"
+	"io"
 )
 
 // Endpoint is ...
@@ -17,18 +18,32 @@ type Endpoint struct {
 }
 
 // NewBaseModulo is ...
-func NewBaseModulo() []big.Int {
+func NewBaseModulo(bytes uint8) []big.Int {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers will work
-	p, _ := rand.Prime(rand.Reader, 64)
-	g, _ := rand.Prime(rand.Reader, 64)
-	base, modulo := p.Abs(p), g.Abs(g)
-	return []big.Int{*base, *modulo}
+	if bytes = 16 or bytes = 24 or bytes = 32{
+		p, _ := rand.Prime(rand.Reader, bytes)
+		g, _ := rand.Prime(rand.Reader, bytes)
+		base, modulo := p.Abs(p), g.Abs(g)
+		return []big.Int{*base, *modulo}
 }
 
 // NewEndpoint is ...
 func NewEndpoint(publicBase, publicModulo, privateKey big.Int) Endpoint {
 	//creates a endpoint struct using an oop style function
 	return Endpoint{publicBase, publicModulo, privateKey}
+}
+
+func NewPrivateKey(bytes uint8) (big.int, error) {
+	if bytes = 16 or bytes = 24 or bytes = 32{
+		privateKey := new(big.Int)
+		pkBytes := make([]byte, bytes)
+		_, err := rand.Read(fullKey)
+		if err != nil:
+			return nil, error
+		privateKey.SetBytes(pkBytes)
+		return privateKey, nil
+	}
+	return nil, errors.New("key may only be 16/24/32 bytes")
 }
 
 // GenPartial is ...
@@ -44,7 +59,7 @@ func GenPartial(end Endpoint) big.Int {
 func GenFull(end Endpoint, partialKey big.Int) big.Int {
 	//generate full shared secret using the other parties' public key and our personal endpoint
 	//this should not be shared directly
-	full := big.NewInt(0)
+	full := new(big.Int)
 	full.Exp(&partialKey, &end.PrivateKey, &end.PublicModulo)
 	return *full
 }
@@ -60,9 +75,9 @@ func Encrypt(end Endpoint, partialKey big.Int, message string) ([]byte, error) {
 	b := base64.StdEncoding.EncodeToString(plainText)
     cipherText := make([]byte, aes.BlockSize+len(b))
     initialVector := cipherText[:aes.BlockSize]
-    //if _, err := io.ReadFull(rand.Reader, initialVector); err != nil {
-        //return nil, err
-    //}
+    if _, err := io.ReadFull(rand.Reader, initialVector); err != nil {
+        return nil, err
+    }
     cipherFeedback := cipher.NewCFBEncrypter(block, initialVector)
     cipherFeedback.XORKeyStream(cipherText[aes.BlockSize:], []byte(b))
 	return cipherText, nil
@@ -77,7 +92,7 @@ func Decrypt(end Endpoint, partialKey big.Int,encrypted string) ([]byte, error) 
         return nil, err
     }
     if len(cipherText) < aes.BlockSize {
-        return nil, errors.New("ciphertext too short")
+        return nil, errors.New("cipher text is too short")
     }
     initialVector := cipherText[:aes.BlockSize]
     plainText := cipherText[aes.BlockSize:]
