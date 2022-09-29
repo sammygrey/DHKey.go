@@ -45,7 +45,7 @@ func NewPrivateKey(bytes uint8) (big.Int, error) {
 		privateKey.SetBytes(pkBytes)
 		return *privateKey, err
 	}
-	return privateKey, errors.New("key may only be 16/24/32 bytes")
+	return *privateKey, errors.New("key may only be 16/24/32 bytes")
 }
 
 // GenPartial is ...
