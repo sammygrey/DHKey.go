@@ -3,15 +3,15 @@ package main
 import (
 	"fmt"
 	"math/big"
-	
+
 	"github.com/sammygrey/dh-key.go/utils"
 )
 
 func main() {
 
-	base, modulo := utils.NewBaseModulo()
-	pk1 := big.NewInt(6)
-	pk2 := big.NewInt(8)
+	base, modulo := utils.NewBaseModulo(32)
+	pk1 := utils.NewPrivateKey(32)
+	pk2 := utils.NewPrivateKey(32)
 	end1 := utils.NewEndpoint(*base, *modulo, *pk1)
 	end2 := utils.NewEndpoint(*base, *modulo, *pk2)
 	var pbk1 big.Int = utils.GenPartial(end1)
