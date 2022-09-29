@@ -18,7 +18,7 @@ type Endpoint struct {
 }
 
 // NewBaseModulo is ...
-func NewBaseModulo(bytes uint8) ([]big.Int, error)[] {
+func NewBaseModulo(bytes uint8) ([]big.Int, error) {
 	//ideally g**q = 1 mod p, where q is a random prime integer, but all prime numbers will work
 	bits := int(bytes)*8
 	if (bytes == 16 || bytes == 24 || bytes == 32){
