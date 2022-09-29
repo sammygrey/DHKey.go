@@ -21,7 +21,7 @@ func main() {
 	err(err2)
 	pk2, err3 := utils.NewPrivateKey(32)
 	err(err3)
-	base, modulo = bm
+	base, modulo := bm[0], bm[1]
 	end1 := utils.NewEndpoint(*base, *modulo, pk1)
 	end2 := utils.NewEndpoint(*base, *modulo, pk2)
 	var pbk1 big.Int = utils.GenPartial(end1)
