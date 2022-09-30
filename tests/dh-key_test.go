@@ -47,20 +47,62 @@ func TestGenFull(t *testing.T) {
 	}
 }
 
-func BenchmarkNewBaseModulo(b *testing.B) {
+func BenchmarkNewBaseModulo16(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		utils.NewBaseModulo()
+		utils.NewBaseModulo(16)
 	}
 }
+
+func BenchmarkNewBaseModulo24(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		utils.NewBaseModulo(24)
+	}
+}
+
+func BenchmarkNewBaseModulo32(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		utils.NewBaseModulo(32)
+	}
+}
+
+func BenchmarkNewPrivateKey16(b *testing.B){
+	for n := 0; n < b.N; n++ {
+		utils.NewPrivateKey(16)
+	}
+}
+
+func BenchmarkNewPrivateKey24(b *testing.B){
+	for n := 0; n < b.N; n++ {
+		utils.NewPrivateKey(24)
+	}
+}
+
+func BenchmarkNewPrivateKey32(b *testing.B){
+	for n := 0; n < b.N; n++ {
+		utils.NewPrivateKey(32)
+	}
+}
+
+//figure out how to change these to better fit the new functions
+
+var test_bm []big.int = utils.NewBaseModulo(32)
+var test_pk big.int = utils.NewPrivateKey(32)
+var test_pk2 big.int = utils.NewPrivateKey(32)
+var test_end3 utils.Endpoint = utils.NewEndpoint(test_bm[0], test_bm[1], test_pk)
+var test_end4 utils.Endpoint = utils.NewEndpoint(test_bm[0], test_bm[1], test_pk2)
+var test_pbk big.int = utils.genPartial(test_end3)
+var test_pbk2 big.int = utils.genPartial(test_end4)
 
 func BenchmarkEncrypt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		utils.Encrypt(test_end, *big.NewInt(8), "You rock!")
+		utils.Encrypt(test_end3, test_pbk2, "You rock!")
 	}
 }
 
+var test_cipherText string = utils.Encrypt(test_end3, test_pbk2, "You rock!")
+
 func BenchmarkDecrypt(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		utils.Decrypt(test_end, *big.NewInt(8), "109,131,137,52,134,131,119,127,53")
+		utils.Decrypt(test_end4, test_pbk, test_cipherText)
 	}
 }
